@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    id("androidx.room")
 }
 
 android {
@@ -37,6 +38,9 @@ android {
     }
     buildFeatures {
         viewBinding = true
+    }
+    room {
+        schemaDirectory("$projectDir/schemas")
     }
 }
 
@@ -75,6 +79,12 @@ dependencies {
 
     // Coil
     implementation(libs.coil)
+
+    // Room
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.runtime)
+    annotationProcessor(libs.androidx.room.compiler)
+    kapt(libs.androidx.room.compiler)
 }
 
 kapt {

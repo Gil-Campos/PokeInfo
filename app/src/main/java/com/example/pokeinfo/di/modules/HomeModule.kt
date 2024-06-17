@@ -1,5 +1,6 @@
 package com.example.pokeinfo.di.modules
 
+import com.example.pokeinfo.data.local.PokemonDAO
 import com.example.pokeinfo.data.remote.PokeApi
 import com.example.pokeinfo.data.repository.PokemonHomeRepositoryImpl
 import com.example.pokeinfo.domain.repository.PokemonHomeRepository
@@ -15,7 +16,7 @@ object HomeModule {
 
     @Singleton
     @Provides
-    fun providesHomeRepository(pokeApi: PokeApi): PokemonHomeRepository {
-        return PokemonHomeRepositoryImpl(pokeApi)
+    fun providesHomeRepository(pokeApi: PokeApi, pokemonDAO: PokemonDAO): PokemonHomeRepository {
+        return PokemonHomeRepositoryImpl(pokeApi, pokemonDAO)
     }
 }

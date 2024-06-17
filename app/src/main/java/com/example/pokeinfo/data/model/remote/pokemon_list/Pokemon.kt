@@ -1,4 +1,4 @@
-package com.example.pokeinfo.data.model.pokemon_list
+package com.example.pokeinfo.data.model.remote.pokemon_list
 
 import androidx.annotation.Keep
 

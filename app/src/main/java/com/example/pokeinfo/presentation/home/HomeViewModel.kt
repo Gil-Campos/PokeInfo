@@ -1,13 +1,13 @@
 package com.example.pokeinfo.presentation.home
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.pokeinfo.domain.model.PokemonHomeInfo
 import com.example.pokeinfo.domain.model.PokemonList
 import com.example.pokeinfo.domain.usecase.DoGetPokemonList
+import com.example.pokeinfo.domain.usecase.DoInsertPokemonList
 import com.example.pokeinfo.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -16,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val doGetPokemonList: DoGetPokemonList
+    private val doGetPokemonList: DoGetPokemonList,
+    private val doInsertPokemonList: DoInsertPokemonList
 ) : ViewModel() {
 
     private var _isLoading = MutableLiveData(false)
@@ -53,9 +54,16 @@ class HomeViewModel @Inject constructor(
                     is Resource.Success -> {
                         _isLoading.value = false
                         _pokemonList.value = resource.data.pokemonList
+                        insertPokemons(resource.data)
                     }
                 }
             }
+        }
+    }
+
+    private fun insertPokemons(pokemonList: PokemonHomeInfo) {
+        viewModelScope.launch {
+            doInsertPokemonList.run(pokemonList)
         }
     }
 }

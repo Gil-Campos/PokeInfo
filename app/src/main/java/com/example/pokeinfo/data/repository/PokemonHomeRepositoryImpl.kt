@@ -1,5 +1,7 @@
 package com.example.pokeinfo.data.repository
 
+import com.example.pokeinfo.data.local.Pokemon
+import com.example.pokeinfo.data.local.PokemonDAO
 import com.example.pokeinfo.data.mappers.pokemonResponseHomeMapper
 import com.example.pokeinfo.data.remote.PokeApi
 import com.example.pokeinfo.domain.model.PokemonHomeInfo
@@ -9,8 +11,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import javax.inject.Inject
 
-class PokemonHomeRepositoryImpl @Inject constructor(private val pokeApi: PokeApi) :
-    PokemonHomeRepository {
+class PokemonHomeRepositoryImpl @Inject constructor(
+    private val pokeApi: PokeApi,
+    private val pokemonDAO: PokemonDAO
+) : PokemonHomeRepository {
 
     override suspend fun getPokemonList(offset: Int, limit: Int): Flow<Resource<PokemonHomeInfo>> {
         return channelFlow {
@@ -53,6 +57,17 @@ class PokemonHomeRepositoryImpl @Inject constructor(private val pokeApi: PokeApi
                 send(Resource.Error(message = "An error occurred: ${e.message}"))
             }
         }
+    }
+
+    override suspend fun insertPokemons(pokemons: PokemonHomeInfo) {
+        val pokemonForDb = pokemons.pokemonList.map {
+            Pokemon(
+                name = it.name,
+                imageUrl = it.imageUrl
+            )
+        }
+
+        pokemonDAO.insertPokemon(pokemonForDb)
     }
 
 }
