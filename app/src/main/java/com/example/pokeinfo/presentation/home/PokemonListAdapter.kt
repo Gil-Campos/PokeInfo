@@ -11,6 +11,8 @@ import com.example.pokeinfo.domain.model.PokemonList
 
 class PokemonListAdapter : RecyclerView.Adapter<PokemonListAdapter.ViewHolder>() {
 
+    private val pokemonList: MutableList<PokemonList> = mutableListOf()
+
     inner class ViewHolder(val binding: ItemPokeListBinding) : RecyclerView.ViewHolder(binding.root)
 
     private val diffCallback = object : DiffUtil.ItemCallback<PokemonList>() {
@@ -28,7 +30,9 @@ class PokemonListAdapter : RecyclerView.Adapter<PokemonListAdapter.ViewHolder>()
     var pokemons: List<PokemonList>
         get() = differ.currentList
         set(value) {
-            differ.submitList(value)
+            pokemonList.addAll(value) // Append new data
+            differ.submitList(pokemonList.toList()) // Submit updated list
+
         }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

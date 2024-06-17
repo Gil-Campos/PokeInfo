@@ -28,11 +28,18 @@ class HomeViewModel @Inject constructor(
     private var _errorIsActive = MutableLiveData(false)
     val errorIsActive: LiveData<Boolean> get() = _errorIsActive
 
+    private var limit = 15
+
     fun getPokemons() {
         _errorIsActive.value = false
 
+        if (_pokemonList.value?.size == 15) {
+            limit -= 5
+        }
+
+
         viewModelScope.launch {
-            doGetPokemonList.run(0, 15).collectLatest { resource ->
+            doGetPokemonList.run(_pokemonList.value?.size ?: 0, limit).collectLatest { resource ->
                 when (resource) {
                     is Resource.Error -> {
                         _isLoading.value = false
