@@ -13,5 +13,5 @@ interface PokemonDAO {
     suspend fun insertPokemon(user: List<Pokemon>)
 
     @Query("SELECT * FROM pokemon_table")
-    fun getPokemons(): Flow<List<Pokemon>>
+    fun getPokemons(): List<Pokemon>
 }
