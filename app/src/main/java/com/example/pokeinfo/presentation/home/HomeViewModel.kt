@@ -10,6 +10,8 @@ import com.example.pokeinfo.domain.usecase.DoGetPokemonList
 import com.example.pokeinfo.domain.usecase.DoInsertPokemonList
 import com.example.pokeinfo.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,8 +25,8 @@ class HomeViewModel @Inject constructor(
     private var _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> get() = _isLoading
 
-    private var _pokemonList = MutableLiveData<List<PokemonList>>()
-    val pokemonList: LiveData<List<PokemonList>> get() = _pokemonList
+    private var _pokemonList = MutableStateFlow<List<PokemonList>?>(null)
+    val pokemonList: StateFlow<List<PokemonList>?> get() = _pokemonList
 
     private var _errorIsActive = MutableLiveData(false)
     val errorIsActive: LiveData<Boolean> get() = _errorIsActive

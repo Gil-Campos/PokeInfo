@@ -88,6 +88,10 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     annotationProcessor(libs.androidx.room.compiler)
     kapt(libs.androidx.room.compiler)
+
+    // Workmanager
+    implementation(libs.androidx.work.runtime.ktx)
+
 }
 
 kapt {

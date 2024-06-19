@@ -7,10 +7,15 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.pokeinfo.R
 import com.example.pokeinfo.databinding.FragmentHomeBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 
 @AndroidEntryPoint
@@ -44,9 +49,11 @@ class HomeFragment : Fragment() {
     }
 
     private fun getPokemons() {
-        viewModel.pokemonList.observe(viewLifecycleOwner) {
-            if (!it.isNullOrEmpty()) {
-                pokemonAdapter.pokemons = it
+        lifecycleScope.launch {
+            viewModel.pokemonList.collectLatest {
+                if (!it.isNullOrEmpty()) {
+                    pokemonAdapter.pokemons = it
+                }
             }
         }
     }
