@@ -1,16 +1,35 @@
 package com.example.pokeinfo.presentation.home
 
+import android.Manifest
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.pokeinfo.R
 import com.example.pokeinfo.databinding.FragmentHomeBinding
+import com.example.pokeinfo.presentation.MainActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +39,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-
+@RequiresApi(Build.VERSION_CODES.O)
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
 
@@ -41,19 +60,24 @@ class HomeFragment : Fragment() {
         return binding.root
     }
 
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        askNotificationPermission()
+    }
+
+    private fun initData() {
         initRecyclerView()
         observer()
         viewModel.getPokemons()
     }
 
+
     private fun observer() {
         getPokemons()
         showHideLoading()
     }
-
 
     private fun getPokemons() {
         lifecycleScope.launch {
@@ -63,6 +87,7 @@ class HomeFragment : Fragment() {
                     if (it.size == 15) {
                         startBackgroundTask()
                     }
+                    showNotification()
                 }
             }
         }
@@ -97,47 +122,94 @@ class HomeFragment : Fragment() {
         }
     }
 
-//    @RequiresApi(Build.VERSION_CODES.O)
-//    private suspend fun doBackgroundTask() {
-//        delay(10000)
-//        viewModel.getPokemons()
-//        showNotification()
-//    }
-//
-//    private fun showNotification() {
-//        val intent = Intent(requireContext(), MainActivity::class.java).apply {
-//            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-//        }
-//
-//        val pendingIntent =
-//            PendingIntent.getActivity(requireContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE)
-//
-//        val notification = Notification.Builder(requireContext(), CHANNEL_ID)
-//            .setSmallIcon(R.drawable.ic_launcher_foreground)
-//            .setContentTitle("New data arrive")
-//            .setContentText("New data fetched from the poke api, check it out")
-//            .setPriority(Notification.PRIORITY_MAX)
-//            .setAutoCancel(true)
-//            .setContentIntent(pendingIntent)
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            val channelName = "channel name"
-//            val channelDescription = "channel description"
-//            val channelImportance = NotificationManager.IMPORTANCE_HIGH
-//
-//            val channel = NotificationChannel(CHANNEL_ID, channelName, channelImportance).apply {
-//                description = channelDescription
-//            }
-//
-//            val notificationManager =
-//                requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-//            notificationManager.createNotificationChannel(channel)
-//        }
-//
-//        with(NotificationManagerCompat.from(requireContext())) {
-//            notify(NOTIFICATION_ID, notification.build())
-//        }
-//    }
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            initData()
+        } else {
+            showInContextUI()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun askNotificationPermission() {
+        when {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                initData()
+            }
+
+            shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS) -> {
+                showInContextUI()
+            }
+
+            else -> {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
+
+    private fun showInContextUI() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Notification Permission")
+            .setMessage("You need to be aware of what is happening in the background.")
+            .setNegativeButton("Denied") { dialog, which ->
+                dialog.dismiss()
+            }
+            .setPositiveButton("Grant") { _, _ ->
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                val uri = Uri.fromParts("package", requireContext().packageName, null)
+                intent.setData(uri)
+                startActivity(intent)
+            }
+            .show()
+    }
+
+    private fun showNotification() {
+        val intent =
+            Intent(requireContext(), (requireActivity() as MainActivity)::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+
+        val pendingIntent =
+            PendingIntent.getActivity(requireContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
+        val notification = Notification.Builder(requireContext(), CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("New data arrive")
+            .setContentText("New data fetched from the poke api, check it out")
+            .setPriority(Notification.PRIORITY_MAX)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channelName = "channel name"
+            val channelDescription = "channel description"
+            val channelImportance = NotificationManager.IMPORTANCE_HIGH
+
+            val channel = NotificationChannel(CHANNEL_ID, channelName, channelImportance).apply {
+                description = channelDescription
+            }
+
+            val notificationManager =
+                requireContext().getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        with(NotificationManagerCompat.from(requireContext())) {
+            if (ActivityCompat.checkSelfPermission(
+                    requireContext(),
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            notify(NOTIFICATION_ID, notification.build())
+        }
+    }
 
 
     override fun onDestroyView() {
