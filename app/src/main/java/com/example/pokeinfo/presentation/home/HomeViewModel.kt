@@ -33,16 +33,18 @@ class HomeViewModel @Inject constructor(
 
     private var limit = 15
 
+    private var listCount = 0
+
     fun getPokemons() {
         _errorIsActive.value = false
 
-        if (_pokemonList.value?.size == 15) {
-            limit -= 5
+        if (listCount == 15 ) {
+            limit = 10
         }
 
 
         viewModelScope.launch {
-            doGetPokemonList.run(_pokemonList.value?.size ?: 0, limit).collectLatest { resource ->
+            doGetPokemonList.run(listCount, limit).collectLatest { resource ->
                 when (resource) {
                     is Resource.Error -> {
                         _isLoading.value = false
@@ -54,6 +56,7 @@ class HomeViewModel @Inject constructor(
                     }
 
                     is Resource.Success -> {
+                        listCount += resource.data.pokemonList.size
                         _isLoading.value = false
                         _pokemonList.value = resource.data.pokemonList
                         insertPokemons(resource.data)
