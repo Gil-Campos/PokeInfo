@@ -10,8 +10,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:background="#804C3BCF"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="#804C3BCF">
 
         <ImageView
             android:id="@+id/ivPokemon"
@@ -26,7 +26,10 @@
             android:id="@+id/tvPokemonName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             android:textSize="22sp"
+            android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="@+id/ivPokemon"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/ivPokemon"

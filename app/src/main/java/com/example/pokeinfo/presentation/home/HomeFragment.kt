@@ -133,7 +133,7 @@ class HomeFragment : Fragment() {
     private fun startBackgroundTask() {
         job = CoroutineScope(Dispatchers.IO).launch {
             while (isActive) {
-                delay(30000) // 10 seconds
+                delay(30000) // 30000 milliseconds = 30 seconds
                 handler.post {
                     viewModel.getPokemons()
                 }
