@@ -38,6 +38,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.system.exitProcess
 
 @RequiresApi(Build.VERSION_CODES.O)
 @AndroidEntryPoint
@@ -77,6 +78,7 @@ class HomeFragment : Fragment() {
     private fun observer() {
         getPokemons()
         showHideLoading()
+        checkForErrors()
     }
 
     private fun getPokemons() {
@@ -89,6 +91,23 @@ class HomeFragment : Fragment() {
                     }
                     showNotification()
                 }
+            }
+        }
+    }
+
+    private fun checkForErrors() {
+        viewModel.errorIsActive.observe(viewLifecycleOwner) {
+            if (it) {
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Ups Something happen...")
+                    .setCancelable(false)
+                    .setMessage("Close and try to open the app again, we have fetching and storing the data.")
+                    .setNegativeButton("Close") { dialog, _ ->
+                        dialog.dismiss()
+                        (requireActivity() as MainActivity).finish()
+                        exitProcess(0)
+                    }
+                    .show()
             }
         }
     }
